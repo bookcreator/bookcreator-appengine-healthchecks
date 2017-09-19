@@ -25,9 +25,26 @@ describe('SubscriptionInfo', function() {
 	})
 	
 	describe('check has error', function() {
-		it('when not received a message', function() {
+		
+		const now = Date.now()
+
+		before(function() {
+			MockDate.set(now)
+		})
+		after(function() {
+			MockDate.reset()
+		})
+		
+		it('when not started listening', function() {
 			const s = new SubscriptionInfo(sub, 1000)
 			const nowDate = new Date()
+			const err = s._check(nowDate)
+			assert.throws(() => { throw err }, /^Error: Not yet started listening to subscription \(dummy-sub\)$/)
+		})
+		it('when not received a message', function() {
+			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
+			const nowDate = new Date(Date.now() + 1001)
 			const err = s._check(nowDate)
 			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for never$/)
 		})
@@ -53,6 +70,13 @@ describe('SubscriptionInfo', function() {
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
+			assert.strictEqual(err)
+		})
+		it('when listening but not yet received', function() {
+			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
+			const nowDate = new Date()
+			const err = s._check( nowDate)
 			assert.strictEqual(err)
 		})
 	})
