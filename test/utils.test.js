@@ -1,7 +1,6 @@
 const assert = require('assert')
 const { EventEmitter } = require('events')
 const MockDate = require('mockdate')
-const PubSub = require('@google-cloud/pubsub')
 
 const utils = require('../lib/utils')
 
