@@ -1,6 +1,7 @@
 const assert = require('assert')
 const { EventEmitter } = require('events')
 const MockDate = require('mockdate')
+const PubSub = require('@google-cloud/pubsub')
 
 const utils = require('../lib/utils')
 
@@ -60,7 +61,14 @@ describe('utils.ageOfMessage', function() {
 
 describe('utils.isPubSubSubscription', function() {
 	
-	it('valid object', function() {
+	it('valid object v0.11', function() {
+		const sub = new EventEmitter()
+		sub.parent = {}
+		
+		assert(utils.isPubSubSubscription(sub))
+	})
+	
+	it('valid object v0.14', function() {
 		const sub = new EventEmitter()
 		sub.pubsub = {}
 		
