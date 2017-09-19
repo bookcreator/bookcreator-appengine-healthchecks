@@ -4,7 +4,7 @@ const MockDate = require('mockdate')
 
 const HealthChecks = require('..')
 
-describe('index-pubsub', function() {
+describe('HealthChecks - pubsub', function() {
 	
 	const now = Date.now()
 
@@ -15,6 +15,45 @@ describe('index-pubsub', function() {
 		MockDate.reset()
 	})
 	
+	const sub = new EventEmitter()
+	sub.name = 'dummy-sub'
+	sub.pubsub = {}
+	afterEach(function() {
+		sub.removeAllListeners()
+	})
 	
-	
+	describe('sub listeners', function() {
+		it('attaches listeners', function() {
+			const initialMessageListenerCount = sub.listenerCount('message')
+			const initialErrorListenerCount = sub.listenerCount('error')
+			
+			const hc = new HealthChecks()
+			hc.startMonitorPubSubSubscription(sub)
+			
+			assert.strictEqual(sub.listenerCount('message'), initialMessageListenerCount + 1)
+			assert.strictEqual(sub.listenerCount('error'), initialErrorListenerCount + 2)
+		})
+		it('detaches listeners', function() {
+			const initialMessageListenerCount = sub.listenerCount('message')
+			const initialErrorListenerCount = sub.listenerCount('error')
+		
+			const hc = new HealthChecks()
+			hc.startMonitorPubSubSubscription(sub)
+			hc.stopMonitorPubSubSubscription(sub)
+			
+			assert.strictEqual(sub.listenerCount('message'), initialMessageListenerCount)
+			assert.strictEqual(sub.listenerCount('error'), initialErrorListenerCount)
+		})
+		it('sets unhealthy on error', function() {
+			const hc = new HealthChecks()
+			hc.startMonitorPubSubSubscription(sub)
+			
+			assert.strictEqual(hc._healthy.error, null)
+			
+			const err = new Error('Some error')
+			sub.emit('error', err)
+			
+			assert.strictEqual(hc._healthy.error, err)
+		})
+	})
 })
