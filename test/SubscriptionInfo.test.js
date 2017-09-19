@@ -158,7 +158,6 @@ describe('SubscriptionInfo', function() {
 				assert.strictEqual(message, m)
 				done()
 			}
-			const initialCount = sub
 			s.startListening(sub)
 			
 			sub.emit('message', m)
