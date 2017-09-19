@@ -1,7 +1,7 @@
 const assert = require('assert')
 const httpMocks = require('node-mocks-http')
 
-const { Endpoint } = require('../lib/HealthChecks')
+const Endpoint = require('../lib/Endpoint')
 
 describe('Endpoint', function() {
 	

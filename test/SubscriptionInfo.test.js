@@ -1,6 +1,6 @@
 const assert = require('assert')
 
-const { SubscriptionInfo } = require('../lib/HealthChecks')
+const SubscriptionInfo = require('../lib/SubscriptionInfo')
 
 describe('SubscriptionInfo', function() {
 	

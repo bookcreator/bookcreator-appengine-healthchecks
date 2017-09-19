@@ -1,6 +1,6 @@
 'use strict'
 
-const { HealthChecks } = require('./lib/HealthChecks')
+const HealthChecks = require('./lib/HealthChecks')
 
 // Creates the legacy health check:
 // 	/_ah/health
