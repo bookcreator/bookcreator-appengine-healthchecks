@@ -4,13 +4,40 @@ const httpMocks = require('node-mocks-http')
 const HealthChecks = require('..')
 
 describe('HealthChecks', function() {
-
-	const next = () => next.called = true
-	beforeEach(function() {
-		next.called = false
+	
+	describe('creation', function() {
+		it('has basic values', function() {
+			const hc1 = new HealthChecks()
+			assert.strictEqual(hc1.maxSubscriptionQuietPeriodMs, 120000)
+			assert.strictEqual(hc1.verboseErrorResponses, !!process.env.DEBUG)
+			
+			const hc2 = new HealthChecks({})
+			assert.strictEqual(hc2.maxSubscriptionQuietPeriodMs, 120000)
+			assert.strictEqual(hc2.verboseErrorResponses, !!process.env.DEBUG)
+		})
+		it('has different maxSubscriptionQuietPeriodMs', function() {
+			const hc = new HealthChecks({ defaultMaxSubscriptionQuietPeriodMs: 1000 })
+			assert.strictEqual(hc.maxSubscriptionQuietPeriodMs, 1000)
+			assert.strictEqual(hc.verboseErrorResponses, !!process.env.DEBUG)
+		})
+		it('has different verboseErrorResponses', function() {
+			const hc1 = new HealthChecks({ verboseErrorResponses: true })
+			assert.strictEqual(hc1.maxSubscriptionQuietPeriodMs, 120000)
+			assert.strictEqual(hc1.verboseErrorResponses, true)
+			
+			const hc2 = new HealthChecks({ verboseErrorResponses: 'truthy value' })
+			assert.strictEqual(hc2.maxSubscriptionQuietPeriodMs, 120000)
+			assert.strictEqual(hc2.verboseErrorResponses, true)
+		})
 	})
 	
 	describe('middleware', function() {
+		
+		const next = () => next.called = true
+		beforeEach(function() {
+			next.called = false
+		})
+		
 		describe('legacy health checks', function() {
 			describe('default endpoint', function() {
 				it('no match', function() {
