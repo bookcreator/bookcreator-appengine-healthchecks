@@ -141,7 +141,7 @@ describe('HealthChecks', function() {
 					assert(res._isEndCalled())
 					assert.strictEqual(res.statusCode, 512)
 					assert(res._isJSON())
-					assert.deepEqual(JSON.parse(res._getData()), err)
+					assert.deepEqual(JSON.parse(res._getData()), Object.assign({ message: err.message, statusCode: err.statusCode }, err))
 					assert.strictEqual(JSON.parse(res._getData()).hiddenProperty)
 					assert(!next.called)
 				})
