@@ -59,18 +59,19 @@ describe('utils.ageOfMessage', function() {
 	})
 })
 
+const pubsub_v0_11 = require('@google-cloud/pubsub')()
+const pubsub_vlatest = require('google-cloud').pubsub()
+
 describe('utils.isPubSubSubscription', function() {
 	
 	it('valid object v0.11', function() {
-		const sub = new EventEmitter()
-		sub.parent = {}
+		const sub = pubsub_v0_11.subscription('sub-name')
 		
 		assert(utils.isPubSubSubscription(sub))
 	})
 	
 	it('valid object v0.14', function() {
-		const sub = new EventEmitter()
-		sub.pubsub = {}
+		const sub = pubsub_vlatest.subscription('sub-name')
 		
 		assert(utils.isPubSubSubscription(sub))
 	})
@@ -81,7 +82,7 @@ describe('utils.isPubSubSubscription', function() {
 			assert(!utils.isPubSubSubscription(null))
 			assert(!utils.isPubSubSubscription({}))
 		})
-		it('no pubsub property', function() {
+		it('no pubsub or parent property', function() {
 			const sub = new EventEmitter()
 			assert(!utils.isPubSubSubscription(sub))
 		})

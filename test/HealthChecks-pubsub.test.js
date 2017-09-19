@@ -4,6 +4,15 @@ const MockDate = require('mockdate')
 
 const HealthChecks = require('..')
 
+class Subscription extends EventEmitter {
+
+	constructor() {
+		super()
+		this.name = 'dummy-sub'
+		this.pubsub = {}
+	}
+}
+
 describe('HealthChecks - pubsub', function() {
 	
 	const now = Date.now()
@@ -15,14 +24,12 @@ describe('HealthChecks - pubsub', function() {
 		MockDate.reset()
 	})
 	
-	const sub = new EventEmitter()
-	sub.name = 'dummy-sub'
-	sub.pubsub = {}
+	const sub = new Subscription()
 	afterEach(function() {
 		sub.removeAllListeners()
 	})
 	
-	describe('sub listeners', function() {
+	describe('listeners', function() {
 		it('attaches listeners', function() {
 			const initialMessageListenerCount = sub.listenerCount('message')
 			const initialErrorListenerCount = sub.listenerCount('error')
