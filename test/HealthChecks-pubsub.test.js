@@ -17,7 +17,7 @@ class Subscription extends EventEmitter {
 describe('HealthChecks - pubsub', function() {
 	
 	const now = Date.now()
-
+	
 	before(function() {
 		MockDate.set(now)
 	})
@@ -104,6 +104,56 @@ describe('HealthChecks - pubsub', function() {
 					
 					assert(res._isEndCalled())
 					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
+					assert(!next.called)
+				})
+				it('has no message in allowed period error', function() {
+					const hc = new HealthChecks()
+					hc.startMonitorPubSubSubscription(sub)
+					const req = httpMocks.createRequest({
+						method: 'GET',
+						url: '/_ah/health'
+					})
+					const res = httpMocks.createResponse()
+					
+					// Send some messages
+					sub.emit('message', { timestamp: new Date(now - 100) })
+					sub.emit('message', { timestamp: new Date(now) })
+					
+					// Move forward in time and then check
+					MockDate.set(now + (2 * hc.maxSubscriptionQuietPeriodMs))
+					hc(req, res, next)
+					
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
+					assert(!next.called)
+				})
+				it('has no message error and then error clears', function() {
+					const hc = new HealthChecks()
+					MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
+					hc.startMonitorPubSubSubscription(sub)
+					MockDate.set(now)
+					const req = httpMocks.createRequest({
+						method: 'GET',
+						url: '/_ah/health'
+					})
+					const res1 = httpMocks.createResponse()
+					
+					hc(req, res1, next)
+					
+					assert(res1._isEndCalled())
+					assert.strictEqual(res1.statusCode, 500, `Invalid error code, response data: ${res1._getData()}`)
+					assert(!next.called)
+					
+					// Send a message
+					sub.emit('message', { timestamp: new Date(now - 100) })
+					
+					next.called = false
+					const res2 = httpMocks.createResponse()
+					
+					hc(req, res2, next)
+					
+					assert(res2._isEndCalled())
+					assert.strictEqual(res2.statusCode, 500, `Invalid error code, response data: ${res2._getData()}`)
 					assert(!next.called)
 				})
 			})

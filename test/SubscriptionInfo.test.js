@@ -46,10 +46,11 @@ describe('SubscriptionInfo', function() {
 			s.startListening(sub)
 			const nowDate = new Date(Date.now() + 1001)
 			const err = s._check(nowDate)
-			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for never$/)
+			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has never received a message$/)
 		})
-		it('when received a message', function() {
+		it('when received a message past the allowed time', function() {
 			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date(Date.now() - 10000)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
@@ -60,6 +61,7 @@ describe('SubscriptionInfo', function() {
 	describe('check has no error', function() {
 		it('when received a message now', function() {
 			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date()
 			const nowDate = new Date()
 			const err = s._check( nowDate)
@@ -67,16 +69,17 @@ describe('SubscriptionInfo', function() {
 		})
 		it('when received a message much less than maxQuietPeriodMs ago', function() {
 			const s = new SubscriptionInfo(sub, 1000000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
 			assert.strictEqual(err)
 		})
 		it('when listening but not yet received', function() {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(sub, 10000)
 			s.startListening(sub)
 			const nowDate = new Date()
-			const err = s._check( nowDate)
+			const err = s._check(nowDate)
 			assert.strictEqual(err)
 		})
 	})
@@ -84,6 +87,7 @@ describe('SubscriptionInfo', function() {
 	describe('check boundaries', function() {
 		it('when received a message at the same as maxQuietPeriodMs ago', function() {
 			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
@@ -91,6 +95,7 @@ describe('SubscriptionInfo', function() {
 		})
 		it('when received a message at the same less than maxQuietPeriodMs ago', function() {
 			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date(Date.now() - 999.999)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
@@ -98,6 +103,7 @@ describe('SubscriptionInfo', function() {
 		})
 		it('when received a message at the same more than maxQuietPeriodMs ago', function() {
 			const s = new SubscriptionInfo(sub, 1000)
+			s.startListening(sub)
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 			const nowDate = new Date()
 			const err = s._check(nowDate)
