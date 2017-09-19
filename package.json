@@ -14,7 +14,7 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "eslint": "latest",
+    "eslint": "^4.7.1",
     "mocha": "^3.5.3",
     "mockdate": "^2.0.2",
     "node-mocks-http": "^1.6.4"
