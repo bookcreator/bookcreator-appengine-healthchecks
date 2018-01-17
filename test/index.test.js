@@ -20,12 +20,12 @@ describe('exports', function() {
 		
 		it('has liveiness check', function() {
 			assert.strictEqual(HealthChecks.defaultUpdatedCheck._alive.name, 'alive')
-			assert.strictEqual(HealthChecks.defaultUpdatedCheck._alive.path, '/_ah/liveness')
+			assert.strictEqual(HealthChecks.defaultUpdatedCheck._alive.path, '/liveness_check')
 			assert.strictEqual(HealthChecks.defaultUpdatedCheck._alive.error, null)
 		})
 		it('has readiness check', function() {
 			assert.strictEqual(HealthChecks.defaultUpdatedCheck._ready.name, 'ready')
-			assert.strictEqual(HealthChecks.defaultUpdatedCheck._ready.path, '/_ah/readiness')
+			assert.strictEqual(HealthChecks.defaultUpdatedCheck._ready.path, '/readiness_check')
 			assert.strictEqual(HealthChecks.defaultUpdatedCheck._ready.error, null)
 		})
 	})

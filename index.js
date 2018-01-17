@@ -8,8 +8,8 @@ const HealthChecks = require('./lib/HealthChecks')
 Object.defineProperty(HealthChecks, 'defaultLegacyCheck', { value: new HealthChecks() })
 
 // Creates the updated health checks:
-// 	/_ah/liveness
-// 	/_ah/readiness
+// 	/liveness_check
+// 	/readiness_check
 // (Note the the legacy health check is also included) 
 // See: https://cloud.google.com/appengine/docs/flexible/nodejs/configuring-your-app-with-app-yaml#updated_health_checks 
 Object.defineProperty(HealthChecks, 'defaultUpdatedCheck', { value: new HealthChecks({
