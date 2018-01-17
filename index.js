@@ -13,8 +13,7 @@ Object.defineProperty(HealthChecks, 'defaultLegacyCheck', { value: new HealthChe
 // (Note the the legacy health check is also included) 
 // See: https://cloud.google.com/appengine/docs/flexible/nodejs/configuring-your-app-with-app-yaml#updated_health_checks 
 Object.defineProperty(HealthChecks, 'defaultUpdatedCheck', { value: new HealthChecks({
-	liveness: '/_ah/liveness',
-	readiness: '/_ah/readiness'
+	updatedHealthChecks: true
 }) })
 
 module.exports = HealthChecks
