@@ -116,8 +116,8 @@ describe('HealthChecks - pubsub', function() {
 					const res = httpMocks.createResponse()
 					
 					// Send some messages
-					sub.emit('message', { timestamp: new Date(now - 100) })
-					sub.emit('message', { timestamp: new Date(now) })
+					sub.emit('message', { publishTime: new Date(now - 100) })
+					sub.emit('message', { publishTime: new Date(now) })
 					
 					// Move forward in time and then check
 					MockDate.set(now + (2 * hc.maxSubscriptionQuietPeriodMs))
@@ -145,7 +145,7 @@ describe('HealthChecks - pubsub', function() {
 					assert(!next.called)
 					
 					// Send a message
-					sub.emit('message', { timestamp: new Date(now - 100) })
+					sub.emit('message', { publishTime: new Date(now - 100) })
 					
 					next.called = false
 					const res2 = httpMocks.createResponse()
