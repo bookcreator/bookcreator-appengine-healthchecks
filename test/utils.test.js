@@ -50,7 +50,7 @@ describe('utils.ageOfMessage', function() {
 		assert.strictEqual(mockMessage(12.345, 50, 10, 12), '12d 10h 50m 12.345s')
 	})
 
-	it('valid messages v0.16.2 (publishTime)', function() {
+	it('valid messages ^0.16.2 (publishTime)', function() {
 	
 		const mockMessage = (s = 0, m = 0, h = 0, d = 0) => {
 			let ms = d * 24 * 60 * 60.0
@@ -94,7 +94,7 @@ describe('utils.ageOfMessage', function() {
 })
 
 const pubsub_package = {
-	from: '@google-cloud/pubsub',
+	from: require('../package.json').devDependencies['@google-cloud/pubsub'], // eslint-disable-line global-require
 	lib: require('@google-cloud/pubsub')(), // eslint-disable-line global-require
 	get version() { return this.lib.options.libVersion }
 }
