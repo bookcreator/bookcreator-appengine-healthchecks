@@ -1,6 +1,6 @@
 {
   "name": "@bookcreator/healthchecks",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "repository": "bookcreator/bookcreator-appengine-healthchecks",
   "private": true,
   "main": "index.js",
