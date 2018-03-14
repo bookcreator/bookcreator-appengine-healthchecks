@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"npm.packageManager": "npm",
+		"files.exclude": {
+			"package-lock.json": true
+		},
+		"mocha.path": "../node_modules/mocha"
+	}
+}

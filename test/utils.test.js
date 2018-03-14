@@ -4,33 +4,33 @@ const MockDate = require('mockdate')
 
 const utils = require('../lib/utils')
 
-describe('utils.ageOfMessage', function() {
-	
+describe('utils.ageOfMessage', function () {
+
 	const now = Date.now()
 
-	before(function() {
+	before(function () {
 		MockDate.set(now)
 	})
-	after(function() {
+	after(function () {
 		MockDate.reset()
 	})
 
-	it('valid messages v0.11 (timestamp)', function() {
-	
+	it('valid messages v0.11 (timestamp)', function () {
+
 		const mockMessage = (s = 0, m = 0, h = 0, d = 0) => {
 			let ms = d * 24 * 60 * 60.0
 			ms += h * 60 * 60
 			ms += m * 60
 			ms += s
 			ms *= 1000
-		
+
 			const message = {
 				timestamp: new Date(now - ms)
 			}
-			
+
 			return utils.ageOfMessage(message)
 		}
-		
+
 		assert.strictEqual(mockMessage(0), '0.000s')
 		assert.strictEqual(mockMessage(0.0001), '0.001s')
 		assert.strictEqual(mockMessage(0.00049), '0.001s')
@@ -50,22 +50,22 @@ describe('utils.ageOfMessage', function() {
 		assert.strictEqual(mockMessage(12.345, 50, 10, 12), '12d 10h 50m 12.345s')
 	})
 
-	it('valid messages ^0.16.2 (publishTime)', function() {
-	
+	it('valid messages ^0.16.2 (publishTime)', function () {
+
 		const mockMessage = (s = 0, m = 0, h = 0, d = 0) => {
 			let ms = d * 24 * 60 * 60.0
 			ms += h * 60 * 60
 			ms += m * 60
 			ms += s
 			ms *= 1000
-		
+
 			const message = {
 				publishTime: new Date(now - ms)
 			}
-			
+
 			return utils.ageOfMessage(message)
 		}
-		
+
 		assert.strictEqual(mockMessage(0), '0.000s')
 		assert.strictEqual(mockMessage(0.0001), '0.001s')
 		assert.strictEqual(mockMessage(0.00049), '0.001s')
@@ -84,8 +84,8 @@ describe('utils.ageOfMessage', function() {
 		assert.strictEqual(mockMessage(56.981, 40, 20, 2), '2d 20h 40m 56.981s')
 		assert.strictEqual(mockMessage(12.345, 50, 10, 12), '12d 10h 50m 12.345s')
 	})
-	
-	it('invalid messages', function() {
+
+	it('invalid messages', function () {
 		assert.strictEqual(utils.ageOfMessage(), null)
 		assert.strictEqual(utils.ageOfMessage(null), null)
 		assert.strictEqual(utils.ageOfMessage({}), null)
@@ -104,35 +104,35 @@ const pubsub_v0_11 = {
 	get version() { return this.lib.userAgent.split('/')[1] }
 }
 
-describe('versions of set pub-subs', function() {
+describe('versions of set pub-subs', function () {
 	for (const { from, lib, version } of [pubsub_package, pubsub_v0_11]) {
-		it(`${from} should be valid lib`, function() {
+		it(`${from} should be valid lib`, function () {
 			assert(lib)
 		})
-		it(`${from} should have version`, function() {
+		it(`${from} should have version`, function () {
 			assert(version)
 		})
 	}
 })
 
-describe('utils.isPubSubSubscription', function() {
+describe('utils.isPubSubSubscription', function () {
 
 	for (const { lib, version } of [pubsub_package, pubsub_v0_11]) {
-	
-		it(`valid object - ${version}`, function() {
+
+		it(`valid object - ${version}`, function () {
 			const sub = lib.subscription('sub-name')
-		
+
 			assert(utils.isPubSubSubscription(sub))
 		})
 	}
-	
-	describe('invalid objects', function() {
-		it('primatives', function() {
+
+	describe('invalid objects', function () {
+		it('primatives', function () {
 			assert(!utils.isPubSubSubscription())
 			assert(!utils.isPubSubSubscription(null))
 			assert(!utils.isPubSubSubscription({}))
 		})
-		it('no pubsub or parent property', function() {
+		it('no pubsub or parent property', function () {
 			const sub = new EventEmitter()
 			assert(!utils.isPubSubSubscription(sub))
 		})
