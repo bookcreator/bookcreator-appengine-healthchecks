@@ -224,4 +224,57 @@ describe('SubscriptionInfo', function () {
 			sub.emit('error', err)
 		})
 	})
+
+	describe('restarts', function () {
+
+		it('should not have restart handler', function () {
+			const s = new SubscriptionInfo(sub, 1000)
+			assert.strictEqual(s.restartHandler)
+		})
+
+		it('should have restart handler', function () {
+			const handler = () => { }
+			const s = new SubscriptionInfo(sub, 1000, handler)
+			assert.strictEqual(s.restartHandler, handler)
+		})
+
+		it('should not have a new sub when restart handler does nothing', function () {
+			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => cb(null, orgSub))
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			return s._restart().then(newSub => {
+				assert.strictEqual(newSub)
+			})
+		})
+
+		it('should error when restart handler fails', function () {
+			const restartErr = new Error('Restart error')
+
+			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => cb(restartErr))
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			return s._restart().catch(err => {
+				assert.deepStrictEqual(err, restartErr)
+			})
+		})
+
+		it('should return new sub to one provided by restart handler', function () {
+
+			const newSub = new EventEmitter()
+			newSub.name = 'new-dummy-sub'
+
+			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => {
+				return cb(null, newSub)
+			})
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			return s._restart().then(aSub => {
+				assert.notStrictEqual(aSub, sub)
+				assert.deepStrictEqual(aSub, newSub)
+			})
+		})
+	})
 })

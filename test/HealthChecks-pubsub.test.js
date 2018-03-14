@@ -179,4 +179,81 @@ describe('HealthChecks - pubsub', function () {
 			})
 		})
 	})
+
+	describe('restarts', function () {
+
+		it('should do nothing when restart handler is provided and no error occurs', function (done) {
+			const hc = new HealthChecks()
+			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+				assert.deepStrictEqual(orgSub, sub)
+				cb(null, orgSub)
+			})
+
+			hc._checkSubscriptions(() => {
+				assert.ifError(hc._healthy.error)
+				done()
+			})
+		})
+
+		it('should error when no new sub is provided', function (done) {
+			const hc = new HealthChecks()
+			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
+			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+				assert.deepStrictEqual(orgSub, sub)
+				cb()
+			})
+			MockDate.set(now)
+
+			hc._checkSubscriptions(() => {
+				assert.throws(() => { throw hc._healthy.error }, /^Error: Subscription dummy-sub has never received a message$/)
+				done()
+			})
+		})
+
+		it('should error when same sub is provided', function (done) {
+			const hc = new HealthChecks()
+			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
+			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+				assert.deepStrictEqual(orgSub, sub)
+				cb(null, orgSub)
+			})
+			MockDate.set(now)
+
+			hc._checkSubscriptions(() => {
+				assert.throws(() => { throw hc._healthy.error }, /^Error: Subscription dummy-sub has never received a message$/)
+				done()
+			})
+		})
+
+		it('should start monitoring new sub when same sub is provided', function (done) {
+			const newSub = new Subscription()
+
+			const hc = new HealthChecks()
+			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
+			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+				assert.deepStrictEqual(orgSub, sub)
+				cb(null, newSub)
+			})
+			MockDate.set(now)
+
+			const orgInfo = hc._subscriptions.get(sub)
+
+			hc._checkSubscriptions(() => {
+				assert.ifError(hc._healthy.error)
+				assert.subInfoEqual(hc._subscriptions.get(newSub), orgInfo)
+				done()
+			})
+		})
+	})
 })
+
+assert.subInfoEqual = function (actual, expected, message) {
+	try {
+		this.deepStrictEqual(actual.maxQuietPeriodMs, expected.maxQuietPeriodMs)
+		this.deepStrictEqual(actual.restartHandler, expected.restartHandler)
+		this.deepStrictEqual(actual._subName, expected._subName)
+		this.deepStrictEqual(actual._sub.pubsub, expected._sub.pubsub)
+	} catch (ex) {
+		this.fail(actual, expected, message, '!==', this.subInfoEqual)
+	}
+}
