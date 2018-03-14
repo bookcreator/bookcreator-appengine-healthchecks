@@ -87,7 +87,7 @@ describe('HealthChecks - pubsub', function () {
 					})
 
 					hc(req, res, err => {
-						assert('Next was called' + err ? `with error: ${err}` : '')
+						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
 				})
 				it('has no message error', function (done) {
@@ -107,7 +107,7 @@ describe('HealthChecks - pubsub', function () {
 					})
 
 					hc(req, res, err => {
-						assert('Next was called' + err ? `with error: ${err}` : '')
+						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
 				})
 				it('has no message in allowed period error', function (done) {
@@ -132,7 +132,7 @@ describe('HealthChecks - pubsub', function () {
 					MockDate.set(now + (2 * hc.maxSubscriptionQuietPeriodMs))
 
 					hc(req, res, err => {
-						assert('Next was called' + err ? `with error: ${err}` : '')
+						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
 				})
 				it('has no message error and then error clears', function (done) {
@@ -160,7 +160,7 @@ describe('HealthChecks - pubsub', function () {
 					})
 
 					hc(req, res1, err => {
-						assert('Next was called' + err ? `with error: ${err}` : '')
+						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
 
 					// Send a message
@@ -173,7 +173,7 @@ describe('HealthChecks - pubsub', function () {
 					})
 
 					hc(req, res2, err => {
-						assert('Next was called' + err ? `with error: ${err}` : '')
+						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
 				})
 			})
