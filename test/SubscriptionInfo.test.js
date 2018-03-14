@@ -44,7 +44,7 @@ describe('SubscriptionInfo', function () {
 		})
 		it('when not received a message', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			const nowDate = new Date(Date.now() + 1001)
 			return s._check(nowDate).then(err => {
 				assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has never received a message$/)
@@ -52,7 +52,7 @@ describe('SubscriptionInfo', function () {
 		})
 		it('when received a message past the allowed time', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 10000)
 			const nowDate = new Date()
 			return s._check(nowDate).then(err => {
@@ -64,21 +64,21 @@ describe('SubscriptionInfo', function () {
 	describe('check has no error', function () {
 		it('when received a message now', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date()
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message much less than maxQuietPeriodMs ago', function () {
 			const s = new SubscriptionInfo(sub, 1000000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when listening but not yet received', function () {
 			const s = new SubscriptionInfo(sub, 10000)
-			s.startListening(sub)
+			s.startListening()
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
@@ -87,21 +87,21 @@ describe('SubscriptionInfo', function () {
 	describe('check boundaries', function () {
 		it('when received a message at the same as maxQuietPeriodMs ago', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message at the same less than maxQuietPeriodMs ago', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 999.999)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message at the same more than maxQuietPeriodMs ago', function () {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 			const nowDate = new Date()
 			return s._check(nowDate).then(err => {
@@ -129,7 +129,7 @@ describe('SubscriptionInfo', function () {
 			})
 
 			process.nextTick(() => {
-				s.startListening(sub)
+				s.startListening()
 
 				assert.strictEqual(sub.listenerCount('message'), initialMessageListenerCount + 1)
 				assert.strictEqual(sub.listenerCount('error'), initialErrorListenerCount + 1)
@@ -140,7 +140,7 @@ describe('SubscriptionInfo', function () {
 
 		it('removes listeners', function (done) {
 			const s = new SubscriptionInfo(sub, 1000)
-			s.startListening(sub)
+			s.startListening()
 
 			sub.on('removeListener', (event, listener) => {
 				assert(event === 'message' || event === 'error')
@@ -156,7 +156,7 @@ describe('SubscriptionInfo', function () {
 			const initialErrorListenerCount = sub.listenerCount('error')
 
 			process.nextTick(() => {
-				s.stopListening(sub)
+				s.stopListening()
 
 				assert.strictEqual(sub.listenerCount('message'), initialMessageListenerCount - 1)
 				assert.strictEqual(sub.listenerCount('error'), initialErrorListenerCount - 1)
@@ -187,7 +187,7 @@ describe('SubscriptionInfo', function () {
 				assert.strictEqual(message, m)
 				done()
 			}
-			s.startListening(sub)
+			s.startListening()
 
 			sub.emit('message', m)
 		})
@@ -202,7 +202,7 @@ describe('SubscriptionInfo', function () {
 				assert.strictEqual(s.lastMessageDate.getTime(), now)
 				done()
 			}
-			s.startListening(sub)
+			s.startListening()
 
 			sub.emit('message', m)
 		})
@@ -219,7 +219,7 @@ describe('SubscriptionInfo', function () {
 				assert.strictEqual(errArg, err)
 				done()
 			}
-			s.startListening(sub)
+			s.startListening()
 
 			sub.emit('error', err)
 		})
