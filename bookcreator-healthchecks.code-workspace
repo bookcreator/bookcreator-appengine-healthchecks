@@ -9,6 +9,7 @@
 		"files.exclude": {
 			"package-lock.json": true
 		},
-		"mocha.path": "../node_modules/mocha"
+		"mocha.path": "../node_modules/mocha",
+		"mocha.files.glob": "test/**/*.test.js"
 	}
 }
