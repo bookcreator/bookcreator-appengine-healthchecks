@@ -1,7 +1,12 @@
 const assert = require('assert')
+const { EventEmitter } = require('events')
 const httpMocks = require('node-mocks-http')
 
 const HealthChecks = require('..')
+
+const mockResOpts = {
+	eventEmitter: EventEmitter
+}
 
 describe('HealthChecks', function () {
 
@@ -33,57 +38,58 @@ describe('HealthChecks', function () {
 
 	describe('middleware', function () {
 
-		const next = () => next.called = true
-		beforeEach(function () {
-			next.called = false
-		})
-
 		describe('legacy health checks', function () {
 			describe('default endpoint', function () {
-				it('no match', function () {
+				it('no match', function (done) {
 					const hc = new HealthChecks()
 					const req = httpMocks.createRequest({
 						method: 'GET',
 						url: '/path'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
 
-					hc(req, res, next)
-
-					assert(!res._isEndCalled())
-					assert(next.called)
+					hc(req, res, err => {
+						assert(!res._isEndCalled())
+						done(err)
+					})
 				})
-				it('match - healthy', function () {
+				it('match - healthy', function (done) {
 					const hc = new HealthChecks()
 					const req = httpMocks.createRequest({
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 200)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 200)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('match - not healthy, default error', function () {
+				it('match - not healthy, default error', function (done) {
 					const hc = new HealthChecks()
 					hc.setUnhealthy()
 					const req = httpMocks.createRequest({
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 500)
+						assert.strictEqual(res._getData(), 'healthy check failed')
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 500)
-					assert.strictEqual(res._getData(), 'healthy check failed')
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('match - not healthy, error with code', function () {
+				it('match - not healthy, error with code', function (done) {
 					const err = new Error('Some error')
 					err.code = 511
 
@@ -93,16 +99,19 @@ describe('HealthChecks', function () {
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 511)
+						assert.strictEqual(res._getData(), err.message)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 511)
-					assert.strictEqual(res._getData(), err.message)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('match - not healthy, error with statusCode', function () {
+				it('match - not healthy, error with statusCode', function (done) {
 					const err = new Error('Some error')
 					err.statusCode = 512
 
@@ -112,16 +121,19 @@ describe('HealthChecks', function () {
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 512)
+						assert.strictEqual(res._getData(), err.message)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 512)
-					assert.strictEqual(res._getData(), err.message)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('match - not healthy, verbose error with statusCode', function () {
+				it('match - not healthy, verbose error with statusCode', function (done) {
 					const err = new Error('Some error')
 					err.statusCode = 512
 					err.visible = { complex: true }
@@ -134,16 +146,19 @@ describe('HealthChecks', function () {
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 512)
+						assert(res._isJSON())
+						assert.deepEqual(JSON.parse(res._getData()), Object.assign({ message: err.message, statusCode: err.statusCode }, err))
+						assert.strictEqual(JSON.parse(res._getData()).hiddenProperty)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 512)
-					assert(res._isJSON())
-					assert.deepEqual(JSON.parse(res._getData()), Object.assign({ message: err.message, statusCode: err.statusCode }, err))
-					assert.strictEqual(JSON.parse(res._getData()).hiddenProperty)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
 			})
 		})

@@ -5,6 +5,10 @@ const httpMocks = require('node-mocks-http')
 
 const HealthChecks = require('..')
 
+const mockResOpts = {
+	eventEmitter: EventEmitter
+}
+
 class Subscription extends EventEmitter {
 
 	constructor() {
@@ -66,30 +70,27 @@ describe('HealthChecks - pubsub', function () {
 	})
 
 	describe('middleware', function () {
-
-		const next = () => next.called = true
-		beforeEach(function () {
-			next.called = false
-		})
-
 		describe('legacy health checks', function () {
 			describe('default endpoint', function () {
-				it('has no error', function () {
+				it('has no error', function (done) {
 					const hc = new HealthChecks()
 					hc.startMonitorPubSubSubscription(sub)
 					const req = httpMocks.createRequest({
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 200, `Invalid error code, response data: ${res._getData()}`)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 200, `Invalid error code, response data: ${res._getData()}`)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('has no message error', function () {
+				it('has no message error', function (done) {
 					const hc = new HealthChecks()
 					MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
 					hc.startMonitorPubSubSubscription(sub)
@@ -98,22 +99,30 @@ describe('HealthChecks - pubsub', function () {
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
+						done()
+					})
 
-					hc(req, res, next)
-
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('has no message in allowed period error', function () {
+				it('has no message in allowed period error', function (done) {
 					const hc = new HealthChecks()
 					hc.startMonitorPubSubSubscription(sub)
 					const req = httpMocks.createRequest({
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res = httpMocks.createResponse()
+					const res = httpMocks.createResponse(mockResOpts)
+					res.on('end', () => {
+						assert(res._isEndCalled())
+						assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
+						done()
+					})
 
 					// Send some messages
 					sub.emit('message', { publishTime: new Date(now - 100) })
@@ -121,13 +130,12 @@ describe('HealthChecks - pubsub', function () {
 
 					// Move forward in time and then check
 					MockDate.set(now + (2 * hc.maxSubscriptionQuietPeriodMs))
-					hc(req, res, next)
 
-					assert(res._isEndCalled())
-					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
-					assert(!next.called)
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
-				it('has no message error and then error clears', function () {
+				it('has no message error and then error clears', function (done) {
 					const hc = new HealthChecks()
 					MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
 					hc.startMonitorPubSubSubscription(sub)
@@ -136,25 +144,37 @@ describe('HealthChecks - pubsub', function () {
 						method: 'GET',
 						url: '/_ah/health'
 					})
-					const res1 = httpMocks.createResponse()
+					const res1 = httpMocks.createResponse(mockResOpts)
+					const res2 = httpMocks.createResponse(mockResOpts)
 
-					hc(req, res1, next)
+					const reses = new Set([res1, res2])
+					const resDone = res => {
+						reses.delete(res)
+						if (reses.size === 0) done()
+					}
 
-					assert(res1._isEndCalled())
-					assert.strictEqual(res1.statusCode, 500, `Invalid error code, response data: ${res1._getData()}`)
-					assert(!next.called)
+					res1.on('end', () => {
+						assert(res1._isEndCalled())
+						assert.strictEqual(res1.statusCode, 500, `Invalid error code, response data: ${res1._getData()}`)
+						resDone(res1)
+					})
+
+					hc(req, res1, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 
 					// Send a message
 					sub.emit('message', { publishTime: new Date(now - 100) })
 
-					next.called = false
-					const res2 = httpMocks.createResponse()
+					res2.on('end', () => {
+						assert(res2._isEndCalled())
+						assert.strictEqual(res2.statusCode, 500, `Invalid error code, response data: ${res2._getData()}`)
+						resDone(res2)
+					})
 
-					hc(req, res2, next)
-
-					assert(res2._isEndCalled())
-					assert.strictEqual(res2.statusCode, 500, `Invalid error code, response data: ${res2._getData()}`)
-					assert(!next.called)
+					hc(req, res2, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
 				})
 			})
 		})
