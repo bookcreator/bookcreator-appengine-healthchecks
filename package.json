@@ -14,7 +14,7 @@
     "winston": "^2.4.2"
   },
   "devDependencies": {
-    "@google-cloud/pubsub": "^0.18.0",
+    "@google-cloud/pubsub": "^0.22.2",
     "eslint": "^4.19.1",
     "google-cloud": "0.53.0",
     "mocha": "^5.2.0",
