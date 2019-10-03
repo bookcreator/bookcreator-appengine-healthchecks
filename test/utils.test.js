@@ -50,6 +50,26 @@ describe('utils.ageOfMessage', function () {
 		assert.strictEqual(mockMessage(12.345, 50, 10, 12), '12d 10h 50m 12.345s')
 	})
 
+	describe('PreciseDate', function () {
+		const { PreciseDate } = require('@google-cloud/precise-date')
+
+		let org
+		beforeEach(function () {
+			org = PreciseDate.now
+		})
+		afterEach(function () {
+			PreciseDate.now = org
+		})
+
+		it('valid messages ^1.1.0 (.publishTime) - PreciseDate', function () {
+			const duration = 123125.99
+			const now = PreciseDate.now()
+			MockDate.set(now)
+			PreciseDate.now = function () { return now }
+			assert.strictEqual(utils.ageOfMessage({ publishTime: new PreciseDate(now - duration) }), '123.126s')
+		})
+	})
+
 	it('invalid messages', function () {
 		assert.strictEqual(utils.ageOfMessage(), null)
 		assert.strictEqual(utils.ageOfMessage(null), null)
