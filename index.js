@@ -2,20 +2,8 @@
 
 const HealthChecks = require('./lib/HealthChecks')
 
-// Creates the legacy health check:
-// 	/_ah/health
-// See: https://cloud.google.com/appengine/docs/flexible/nodejs/configuring-your-app-with-app-yaml#legacy_health_checks
-Object.defineProperty(HealthChecks, 'defaultLegacyCheck', { value: new HealthChecks() })
-
-// Creates the updated health checks:
-// 	/liveness_check
-// 	/readiness_check
-// (Note the the legacy health check is also included)
-// See: https://cloud.google.com/appengine/docs/flexible/nodejs/configuring-your-app-with-app-yaml#updated_health_checks
-Object.defineProperty(HealthChecks, 'defaultUpdatedCheck', {
-	value: new HealthChecks({
-		updatedHealthChecks: true
-	})
-})
-
-module.exports = HealthChecks
+module.exports = {
+	HealthChecks,
+	defaultUpdatedCheck: new HealthChecks({ updatedHealthChecks: true }),
+	defaultLegacyCheck: new HealthChecks()
+}

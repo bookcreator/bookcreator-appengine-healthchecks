@@ -3,7 +3,7 @@ const { EventEmitter } = require('events')
 const MockDate = require('mockdate')
 const httpMocks = require('node-mocks-http')
 
-const HealthChecks = require('..')
+const { HealthChecks } = require('..')
 
 const mockResOpts = {
 	eventEmitter: EventEmitter

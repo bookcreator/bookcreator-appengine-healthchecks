@@ -2,7 +2,7 @@ const assert = require('assert')
 const { EventEmitter } = require('events')
 const httpMocks = require('node-mocks-http')
 
-const HealthChecks = require('..')
+const { HealthChecks } = require('..')
 
 const mockResOpts = {
 	eventEmitter: EventEmitter
