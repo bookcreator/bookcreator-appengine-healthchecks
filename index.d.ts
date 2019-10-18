@@ -42,9 +42,6 @@ export class HealthChecks extends Function {
    stopMonitorPubSubSubscription(subscription: Subscription): void
 
    readonly middleware: RequestHandler
-
-   toString(): string
-   inspect(depth: number, options: NodeJS.InspectOptions): string
 }
 
 /**
