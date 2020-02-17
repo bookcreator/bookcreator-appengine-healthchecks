@@ -14,7 +14,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@google-cloud/pubsub": "^1.1.0",
+    "@google-cloud/pubsub": "^1.5.0",
     "eslint": "^6.5.1",
     "mocha": "^6.2.1",
     "mockdate": "^2.0.5",
