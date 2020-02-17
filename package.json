@@ -10,7 +10,7 @@
     "postversion": "git push --tags"
   },
   "dependencies": {
-    "@google-cloud/logging-winston": "^2.1.0",
+    "@google-cloud/logging-winston": "^3.0.5",
     "winston": "^3.2.1"
   },
   "devDependencies": {
