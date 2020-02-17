@@ -18,7 +18,7 @@
     "eslint": "^6.5.1",
     "mocha": "^6.2.1",
     "mockdate": "^2.0.5",
-    "node-mocks-http": "^1.8.0"
+    "node-mocks-http": "^1.8.1"
   },
   "engines": {
     "node": "^10"
