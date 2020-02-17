@@ -16,7 +16,7 @@
   "devDependencies": {
     "@google-cloud/pubsub": "^1.1.0",
     "eslint": "^6.5.1",
-    "mocha": "^6.2.1",
+    "mocha": "^7.0.1",
     "mockdate": "^2.0.5",
     "node-mocks-http": "^1.8.0"
   },
