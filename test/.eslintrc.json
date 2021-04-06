@@ -1,10 +1,14 @@
 {
-   "extends": "../.eslintrc.json",
+   "extends": [
+      "../.eslintrc.json",
+      "plugin:mocha/recommended"
+   ],
    "env": {
       "mocha": true
    },
    "rules": {
-      "global-require": "off",
-      "no-loop-func": "off"
+      "node/global-require": "off",
+      "no-loop-func": "off",
+      "mocha/no-setup-in-describe": "off"
    }
 }

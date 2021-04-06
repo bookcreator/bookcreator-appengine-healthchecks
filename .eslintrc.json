@@ -1,22 +1,24 @@
 {
-	"extends": "eslint:recommended",
+	"extends": [
+		"eslint:recommended",
+		"plugin:node/recommended"
+	],
 	"parserOptions": {
 		"ecmaVersion": 2018,
 		"sourceType": "module"
 	},
 	"env": {
-		"node": true,
-		"es6": true
+		"node": true
 	},
 	"rules": {
+		"node/global-require": "error",
+		"node/no-new-require": "error",
+		"node/handle-callback-err": "error",
+		"node/no-path-concat": "error",
 		"eqeqeq": "error",
-		"global-require": "error",
-		"handle-callback-err": "error",
 		"no-console": "off",
 		"no-loop-func": "error",
 		"no-multi-spaces": "warn",
-		"no-new-require": "error",
-		"no-path-concat": "error",
 		"no-trailing-spaces": [
 			"error",
 			{
