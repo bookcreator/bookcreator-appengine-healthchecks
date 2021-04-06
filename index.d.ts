@@ -9,6 +9,8 @@ export interface EndpointConfig {
    initialValue?: Error
 }
 
+export type Logger = Record<'debug' | 'info' | 'warn' | 'error', (...args: any[]) => void>
+
 export interface HealthChecksConfig {
    maxSubscriptionQuietPeriodMs?: number
    health?: 'string' | EndpointConfig
@@ -16,6 +18,7 @@ export interface HealthChecksConfig {
    readiness?: 'string' | EndpointConfig
    updatedHealthChecks?: boolean
    verboseErrorResponses?: boolean
+   logger?: Logger
 }
 
 export type RestartHandler = (subscription: Subscription, callback: (err?: Error, newSubscription?: Subscription) => void) => void

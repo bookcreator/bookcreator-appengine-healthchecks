@@ -17,14 +17,14 @@ describe('Endpoint', function () {
 			assert.strictEqual(ep.error, null)
 		})
 		it('has correct path', function () {
-			assert.strictEqual(new Endpoint('name', { path: '/some/path' }).path, '/some/path')
+			assert.strictEqual(new Endpoint('name', { logger: console, path: '/some/path' }).path, '/some/path')
 		})
 		it('has correct initial boolean value', function () {
-			assert.notStrictEqual(new Endpoint('name', { initialValue: false }).error, null)
+			assert.notStrictEqual(new Endpoint('name', { logger: console, initialValue: false }).error, null)
 		})
 		it('has correct initial value', function () {
 			const err = new Error('Some error')
-			assert.strictEqual(new Endpoint('name', { initialValue: err }).error, err)
+			assert.strictEqual(new Endpoint('name', { logger: console, initialValue: err }).error, err)
 		})
 	})
 
@@ -35,28 +35,28 @@ describe('Endpoint', function () {
 					method: 'GET',
 					url: '/path'
 				})
-				assert.strictEqual(new Endpoint('name', {}).middleware(req), false)
+				assert.strictEqual(new Endpoint('name', { logger: console, }).middleware(req), false)
 			})
 			it('with path', function () {
 				const req = httpMocks.createRequest({
 					method: 'GET',
 					url: '/path'
 				})
-				assert.strictEqual(new Endpoint('name', { path: '/path' }).middleware(req), undefined)
+				assert.strictEqual(new Endpoint('name', { logger: console, path: '/path' }).middleware(req), undefined)
 			})
 			it('with path but boolean true initial value', function () {
 				const req = httpMocks.createRequest({
 					method: 'GET',
 					url: '/path'
 				})
-				assert.strictEqual(new Endpoint('name', { path: '/path' }).middleware(req), undefined)
+				assert.strictEqual(new Endpoint('name', { logger: console, path: '/path' }).middleware(req), undefined)
 			})
 			it('with path but boolean false initial value', function () {
 				const req = httpMocks.createRequest({
 					method: 'GET',
 					url: '/path'
 				})
-				const err = new Endpoint('name', { path: '/path', initialValue: false }).middleware(req)
+				const err = new Endpoint('name', { logger: console, path: '/path', initialValue: false }).middleware(req)
 				assert.throws(() => { throw err }, /^Error: name check failed$/)
 			})
 			it('with path but object error', function () {
@@ -65,33 +65,33 @@ describe('Endpoint', function () {
 					url: '/path'
 				})
 				const err = new Error('Some error')
-				assert.strictEqual(new Endpoint('name', { path: '/path', initialValue: err }).middleware(req), err)
+				assert.strictEqual(new Endpoint('name', { logger: console, path: '/path', initialValue: err }).middleware(req), err)
 			})
 		})
 	})
 
 	describe('setError', function () {
 		it('errors with null', function () {
-			assert.throws(() => new Endpoint('name', {}).setError(null), /^Error: Not allowed to set name with null error$/)
+			assert.throws(() => new Endpoint('name', { logger: console, }).setError(null), /^Error: Not allowed to set name with null error$/)
 		})
 		it('errors with true', function () {
-			assert.throws(() => new Endpoint('name', {}).setError(true), /^Error: Not allowed to set name with true error$/)
+			assert.throws(() => new Endpoint('name', { logger: console, }).setError(true), /^Error: Not allowed to set name with true error$/)
 		})
 		it('it allows no value', function () {
-			const ep = new Endpoint('name', {})
+			const ep = new Endpoint('name', { logger: console, })
 			ep.setError()
 			assert.notStrictEqual(ep.error, null)
 			assert.strictEqual(ep.error, undefined)
 		})
 		it('it allows boolean false value', function () {
-			const ep = new Endpoint('name', {})
+			const ep = new Endpoint('name', { logger: console, })
 			ep.setError(false)
 			assert.notStrictEqual(ep.error, null)
 			assert.strictEqual(ep.error, false)
 		})
 		it('it allows error object', function () {
 			const err = new Error('Some error')
-			const ep = new Endpoint('name', {})
+			const ep = new Endpoint('name', { logger: console, })
 			ep.setError(err)
 			assert.notStrictEqual(ep.error, null)
 			assert.strictEqual(ep.error, err)
@@ -101,7 +101,7 @@ describe('Endpoint', function () {
 	describe('setValid', function () {
 		it('clears the error', function () {
 			const err = new Error('Some error')
-			const ep = new Endpoint('name', {})
+			const ep = new Endpoint('name', { logger: console, })
 			ep.setError(err)
 			assert.notStrictEqual(!ep.error, null)
 			ep.setValid()

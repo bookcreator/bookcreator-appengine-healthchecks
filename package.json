@@ -9,10 +9,7 @@
     "preversion": "npm test",
     "postversion": "git push --follow-tags"
   },
-  "dependencies": {
-    "@google-cloud/logging-winston": "^2.1.0",
-    "winston": "^3.2.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@google-cloud/pubsub": "^1.1.0",
     "eslint": "^6.5.1",

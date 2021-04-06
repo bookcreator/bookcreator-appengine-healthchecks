@@ -14,11 +14,11 @@ describe('SubscriptionInfo', function () {
 
 	describe('creation', function () {
 		it('has _sub property', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			assert.strictEqual(s._sub, sub)
 		})
 		it('has correct maxQuietPeriodMs value', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			assert.strictEqual(s.maxQuietPeriodMs, 1000)
 			assert.ok(!s.lastMessageDate)
 		})
@@ -36,14 +36,14 @@ describe('SubscriptionInfo', function () {
 		})
 
 		it('when not started listening', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			const nowDate = new Date()
 			return s._check(nowDate).then(err => {
 				assert.throws(() => { throw err }, /^Error: Not yet started listening to subscription \(dummy-sub\)$/)
 			})
 		})
 		it('when not received a message', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			const nowDate = new Date(Date.now() + 1001)
 			return s._check(nowDate).then(err => {
@@ -51,7 +51,7 @@ describe('SubscriptionInfo', function () {
 			})
 		})
 		it('when received a message past the allowed time', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 10000)
 			const nowDate = new Date()
@@ -63,21 +63,21 @@ describe('SubscriptionInfo', function () {
 
 	describe('check has no error', function () {
 		it('when received a message now', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date()
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message much less than maxQuietPeriodMs ago', function () {
-			const s = new SubscriptionInfo(sub, 1000000)
+			const s = new SubscriptionInfo(console, sub, 1000000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when listening but not yet received', function () {
-			const s = new SubscriptionInfo(sub, 10000)
+			const s = new SubscriptionInfo(console, sub, 10000)
 			s.startListening()
 			const nowDate = new Date()
 			return s._check(nowDate)
@@ -86,21 +86,21 @@ describe('SubscriptionInfo', function () {
 
 	describe('check boundaries', function () {
 		it('when received a message at the same as maxQuietPeriodMs ago', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message at the same less than maxQuietPeriodMs ago', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 999.999)
 			const nowDate = new Date()
 			return s._check(nowDate)
 		})
 		it('when received a message at the same more than maxQuietPeriodMs ago', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 			const nowDate = new Date()
@@ -113,7 +113,7 @@ describe('SubscriptionInfo', function () {
 	describe('listeners', function () {
 
 		it('adds listeners', function (done) {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 
 			const initialMessageListenerCount = sub.listenerCount('message')
 			const initialErrorListenerCount = sub.listenerCount('error')
@@ -139,7 +139,7 @@ describe('SubscriptionInfo', function () {
 		})
 
 		it('removes listeners', function (done) {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 
 			sub.on('removeListener', (event, listener) => {
@@ -180,7 +180,7 @@ describe('SubscriptionInfo', function () {
 
 		it('receives message', function (done) {
 			const m = { timestamp: past }
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			const fn = s._messageListener
 			s._messageListener = message => {
 				fn.call(s, message)
@@ -194,7 +194,7 @@ describe('SubscriptionInfo', function () {
 
 		it('receives message and sets lastMessageDate', function (done) {
 			const m = { timestamp: past }
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			assert.ok(!s.lastMessageDate)
 			const fn = s._messageListener
 			s._messageListener = message => {
@@ -212,7 +212,7 @@ describe('SubscriptionInfo', function () {
 
 		it('receives error', function (done) {
 			const err = new Error('Some error')
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			const fn = s._errorListener
 			s._errorListener = errArg => {
 				fn.call(s, errArg)
@@ -228,18 +228,18 @@ describe('SubscriptionInfo', function () {
 	describe('restarts', function () {
 
 		it('should not have restart handler', function () {
-			const s = new SubscriptionInfo(sub, 1000)
+			const s = new SubscriptionInfo(console, sub, 1000)
 			assert.strictEqual(s.restartHandler)
 		})
 
 		it('should have restart handler', function () {
 			const handler = () => { }
-			const s = new SubscriptionInfo(sub, 1000, handler)
+			const s = new SubscriptionInfo(console, sub, 1000, handler)
 			assert.strictEqual(s.restartHandler, handler)
 		})
 
 		it('should not have a new sub when restart handler does nothing', function () {
-			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => cb(null, orgSub))
+			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => cb(null, orgSub))
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
@@ -251,7 +251,7 @@ describe('SubscriptionInfo', function () {
 		it('should error when restart handler fails', function () {
 			const restartErr = new Error('Restart error')
 
-			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => cb(restartErr))
+			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => cb(restartErr))
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
@@ -265,7 +265,7 @@ describe('SubscriptionInfo', function () {
 			const newSub = new EventEmitter()
 			newSub.name = 'new-dummy-sub'
 
-			const s = new SubscriptionInfo(sub, 1000, (orgSub, cb) => {
+			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => {
 				return cb(null, newSub)
 			})
 			s.startListening()
