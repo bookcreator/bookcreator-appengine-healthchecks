@@ -7,11 +7,15 @@ describe('Endpoint', function () {
 
 	describe('creation', function () {
 		it('errors with bad values', function () {
+			// @ts-expect-error
 			assert.throws(() => new Endpoint(), TypeError)
+			// @ts-expect-error
 			assert.throws(() => new Endpoint('name'), TypeError)
 		})
 		it('has correct basic values', function () {
-			const ep = new Endpoint('name', {})
+			const ep = new Endpoint('name', { logger: console })
+			// @ts-expect-error
+			assert.strictEqual(ep._logger, console)
 			assert.strictEqual(ep.name, 'name')
 			assert.strictEqual(ep.path, null)
 			assert.strictEqual(ep.error, null)
@@ -20,6 +24,7 @@ describe('Endpoint', function () {
 			assert.strictEqual(new Endpoint('name', { logger: console, path: '/some/path' }).path, '/some/path')
 		})
 		it('has correct initial boolean value', function () {
+			// @ts-expect-error
 			assert.notStrictEqual(new Endpoint('name', { logger: console, initialValue: false }).error, null)
 		})
 		it('has correct initial value', function () {

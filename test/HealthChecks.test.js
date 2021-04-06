@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { EventEmitter } = require('events')
+const { EventEmitter, once } = require('events')
 const httpMocks = require('node-mocks-http')
 
 const { HealthChecks } = require('..')
@@ -38,9 +38,9 @@ describe('HealthChecks', function () {
 
 	describe('middleware', function () {
 
-		describe('legacy health checks', function () {
-			describe('default endpoint', function () {
-				it('no match', function (done) {
+		describe('health checks', function () {
+			describe('default endpoint', function (done) {
+				it('no match', function () {
 					const hc = new HealthChecks()
 					const req = httpMocks.createRequest({
 						method: 'GET',
@@ -53,11 +53,11 @@ describe('HealthChecks', function () {
 						done(err)
 					})
 				})
-				it('match - healthy', function (done) {
+				it('match - alive', function (done) {
 					const hc = new HealthChecks()
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
 					res.on('end', () => {
@@ -70,95 +70,109 @@ describe('HealthChecks', function () {
 						assert('Next was called' + err ? `with error: ${err}` : '')
 					})
 				})
-				it('match - not healthy, default error', function (done) {
+				it('match - ready', async function () {
 					const hc = new HealthChecks()
-					hc.setUnhealthy()
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/readiness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 500)
-						assert.strictEqual(res._getData(), 'healthy check failed')
-						done()
-					})
 
 					hc(req, res, err => {
 						assert('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 200)
 				})
-				it('match - not healthy, error with code', function (done) {
+				it('match - not alive, default error', async function () {
+					const hc = new HealthChecks()
+					hc.setDead()
+					const req = httpMocks.createRequest({
+						method: 'GET',
+						url: '/liveness_check'
+					})
+					const res = httpMocks.createResponse(mockResOpts)
+
+					hc(req, res, err => {
+						assert('Next was called' + err ? `with error: ${err}` : '')
+					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 500)
+					assert.strictEqual(res._getData(), 'alive check failed')
+				})
+				it('match - not alive, error with code', async function () {
 					const err = new Error('Some error')
 					err.code = 511
 
 					const hc = new HealthChecks()
-					hc.setUnhealthy(err)
+					hc.setDead(err)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 511)
-						assert.strictEqual(res._getData(), err.message)
-						done()
-					})
 
 					hc(req, res, err => {
 						assert('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 511)
+					assert.strictEqual(res._getData(), err.message)
 				})
-				it('match - not healthy, error with statusCode', function (done) {
+				it('match - not alive, error with statusCode', async function () {
 					const err = new Error('Some error')
 					err.statusCode = 512
 
 					const hc = new HealthChecks()
-					hc.setUnhealthy(err)
+					hc.setDead(err)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 512)
-						assert.strictEqual(res._getData(), err.message)
-						done()
-					})
 
 					hc(req, res, err => {
 						assert('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 512)
+					assert.strictEqual(res._getData(), err.message)
 				})
-				it('match - not healthy, verbose error with statusCode', function (done) {
+				it('match - not alive, verbose error with statusCode', async function () {
 					const err = new Error('Some error')
 					err.statusCode = 512
 					err.visible = { complex: true }
 					err.underlyingErr = new Error('Underlying error value')
+					err.underlyingErr.toJSON = function () {
+						return { message: this.message }
+					}
 					Object.defineProperty(err, 'hiddenProperty', { value: 'hidden value' })
 
 					const hc = new HealthChecks({ verboseErrorResponses: true })
-					hc.setUnhealthy(err)
+					hc.setDead(err)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 512)
-						assert(res._isJSON())
-						assert.deepEqual(JSON.parse(res._getData()), Object.assign({ message: err.message, statusCode: err.statusCode }, err))
-						assert.strictEqual(JSON.parse(res._getData()).hiddenProperty)
-						done()
-					})
-
 					hc(req, res, err => {
 						assert('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 512)
+					assert(res._isJSON())
+					assert.deepStrictEqual(JSON.parse(res._getData()), Object.assign({ message: err.message, statusCode: err.statusCode }, err, { underlyingErr: err.underlyingErr.toJSON?.() }))
+					assert.strictEqual(JSON.parse(res._getData()).hiddenProperty, undefined)
 				})
 			})
 		})

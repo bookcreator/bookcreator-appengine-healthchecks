@@ -1,5 +1,5 @@
 const assert = require('assert')
-const { EventEmitter } = require('events')
+const { EventEmitter, once } = require('events')
 const MockDate = require('mockdate')
 const httpMocks = require('node-mocks-http')
 
@@ -56,73 +56,66 @@ describe('HealthChecks - pubsub', function () {
 			assert.strictEqual(sub.listenerCount('message'), initialMessageListenerCount)
 			assert.strictEqual(sub.listenerCount('error'), initialErrorListenerCount)
 		})
-		it('sets unhealthy on error', function () {
+		it('sets dead on error', function () {
 			const hc = new HealthChecks()
 			hc.startMonitorPubSubSubscription(sub)
 
-			assert.strictEqual(hc._healthy.error, null)
+			assert.strictEqual(hc._alive.error, null)
 
 			const err = new Error('Some error')
 			sub.emit('error', err)
 
-			assert.strictEqual(hc._healthy.error, err)
+			assert.strictEqual(hc._alive.error, err)
 		})
 	})
 
 	describe('middleware', function () {
-		describe('legacy health checks', function () {
+		describe('health checks', function () {
 			describe('default endpoint', function () {
-				it('has no error', function (done) {
+				it('has no error', async function () {
 					const hc = new HealthChecks()
 					hc.startMonitorPubSubSubscription(sub)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 200, `Invalid error code, response data: ${res._getData()}`)
-						done()
-					})
-
 					hc(req, res, err => {
 						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 200, `Invalid error code, response data: ${res._getData()}`)
 				})
-				it('has no message error', function (done) {
+				it('has no message error', async function () {
 					const hc = new HealthChecks()
 					MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
 					hc.startMonitorPubSubSubscription(sub)
 					MockDate.set(now)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
-						done()
-					})
 
 					hc(req, res, err => {
 						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
 				})
-				it('has no message in allowed period error', function (done) {
+				it('has no message in allowed period error', async function () {
 					const hc = new HealthChecks()
 					hc.startMonitorPubSubSubscription(sub)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res = httpMocks.createResponse(mockResOpts)
-					res.on('end', () => {
-						assert(res._isEndCalled())
-						assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
-						done()
-					})
 
 					// Send some messages
 					sub.emit('message', { publishTime: new Date(now - 100) })
@@ -134,30 +127,22 @@ describe('HealthChecks - pubsub', function () {
 					hc(req, res, err => {
 						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res, 'end')
+					assert(res._isEndCalled())
+					assert.strictEqual(res.statusCode, 500, `Invalid error code, response data: ${res._getData()}`)
 				})
-				it('has no message error and then error clears', function (done) {
+				it('has no message error and then error clears', async function () {
 					const hc = new HealthChecks()
 					MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
 					hc.startMonitorPubSubSubscription(sub)
 					MockDate.set(now)
 					const req = httpMocks.createRequest({
 						method: 'GET',
-						url: '/_ah/health'
+						url: '/liveness_check'
 					})
 					const res1 = httpMocks.createResponse(mockResOpts)
 					const res2 = httpMocks.createResponse(mockResOpts)
-
-					const reses = new Set([res1, res2])
-					const resDone = res => {
-						reses.delete(res)
-						if (reses.size === 0) done()
-					}
-
-					res1.on('end', () => {
-						assert(res1._isEndCalled())
-						assert.strictEqual(res1.statusCode, 500, `Invalid error code, response data: ${res1._getData()}`)
-						resDone(res1)
-					})
 
 					hc(req, res1, err => {
 						assert.fail('Next was called' + err ? `with error: ${err}` : '')
@@ -166,15 +151,19 @@ describe('HealthChecks - pubsub', function () {
 					// Send a message
 					sub.emit('message', { publishTime: new Date(now - 100) })
 
-					res2.on('end', () => {
-						assert(res2._isEndCalled())
-						assert.strictEqual(res2.statusCode, 500, `Invalid error code, response data: ${res2._getData()}`)
-						resDone(res2)
-					})
+					await once(res1, 'end')
+
+					assert(res1._isEndCalled())
+					assert.strictEqual(res1.statusCode, 500, `Invalid error code, response data: ${res1._getData()}`)
 
 					hc(req, res2, err => {
 						assert.fail('Next was called' + err ? `with error: ${err}` : '')
 					})
+
+					await once(res2, 'end')
+
+					assert(res2._isEndCalled())
+					assert.strictEqual(res2.statusCode, 500, `Invalid error code, response data: ${res2._getData()}`)
 				})
 			})
 		})
@@ -190,7 +179,7 @@ describe('HealthChecks - pubsub', function () {
 			})
 
 			hc._checkSubscriptions(() => {
-				assert.ifError(hc._healthy.error)
+				assert.ifError(hc._alive.error)
 				done()
 			})
 		})
@@ -205,7 +194,7 @@ describe('HealthChecks - pubsub', function () {
 			MockDate.set(now)
 
 			hc._checkSubscriptions(() => {
-				assert.throws(() => { throw hc._healthy.error }, /^Error: Subscription dummy-sub has never received a message$/)
+				assert.throws(() => { throw hc._alive.error }, /^Error: Subscription dummy-sub has never received a message$/)
 				done()
 			})
 		})
@@ -220,7 +209,7 @@ describe('HealthChecks - pubsub', function () {
 			MockDate.set(now)
 
 			hc._checkSubscriptions(() => {
-				assert.throws(() => { throw hc._healthy.error }, /^Error: Subscription dummy-sub has never received a message$/)
+				assert.throws(() => { throw hc._alive.error }, /^Error: Subscription dummy-sub has never received a message$/)
 				done()
 			})
 		})
@@ -239,7 +228,7 @@ describe('HealthChecks - pubsub', function () {
 			const orgInfo = hc._subscriptions.get(sub)
 
 			hc._checkSubscriptions(() => {
-				assert.ifError(hc._healthy.error)
+				assert.ifError(hc._alive.error)
 				assert.subInfoEqual(hc._subscriptions.get(newSub), orgInfo)
 				done()
 			})

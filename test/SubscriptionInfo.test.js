@@ -229,7 +229,7 @@ describe('SubscriptionInfo', function () {
 
 		it('should not have restart handler', function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
-			assert.strictEqual(s.restartHandler)
+			assert.strictEqual(s.restartHandler, undefined)
 		})
 
 		it('should have restart handler', function () {
@@ -244,7 +244,7 @@ describe('SubscriptionInfo', function () {
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
 			return s._restart().then(newSub => {
-				assert.strictEqual(newSub)
+				assert.strictEqual(newSub, undefined)
 			})
 		})
 
