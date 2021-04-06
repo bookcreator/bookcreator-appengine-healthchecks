@@ -5,8 +5,8 @@ import { Subscription } from '@google-cloud/pubsub'
 import { RequestHandler } from 'express-serve-static-core'
 
 export interface EndpointConfig {
-   path?: string = null
-   initialValue?: Error = null
+   path?: string
+   initialValue?: Error
 }
 
 export interface HealthChecksConfig {
