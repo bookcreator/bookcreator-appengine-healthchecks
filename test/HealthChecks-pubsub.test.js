@@ -173,9 +173,9 @@ describe('HealthChecks - pubsub', function () {
 
 		it('should do nothing when restart handler is provided and no error occurs', function (done) {
 			const hc = new HealthChecks()
-			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+			hc.startMonitorPubSubSubscription(sub, orgSub => {
 				assert.deepStrictEqual(orgSub, sub)
-				cb(null, orgSub)
+				return orgSub
 			})
 
 			hc._checkSubscriptions(() => {
@@ -187,9 +187,8 @@ describe('HealthChecks - pubsub', function () {
 		it('should error when no new sub is provided', function (done) {
 			const hc = new HealthChecks()
 			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
-			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+			hc.startMonitorPubSubSubscription(sub, orgSub => {
 				assert.deepStrictEqual(orgSub, sub)
-				cb()
 			})
 			MockDate.set(now)
 
@@ -202,9 +201,9 @@ describe('HealthChecks - pubsub', function () {
 		it('should error when same sub is provided', function (done) {
 			const hc = new HealthChecks()
 			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
-			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+			hc.startMonitorPubSubSubscription(sub, orgSub => {
 				assert.deepStrictEqual(orgSub, sub)
-				cb(null, orgSub)
+				return orgSub
 			})
 			MockDate.set(now)
 
@@ -219,9 +218,9 @@ describe('HealthChecks - pubsub', function () {
 
 			const hc = new HealthChecks()
 			MockDate.set(now - (2 * hc.maxSubscriptionQuietPeriodMs))
-			hc.startMonitorPubSubSubscription(sub, (orgSub, cb) => {
+			hc.startMonitorPubSubSubscription(sub, orgSub => {
 				assert.deepStrictEqual(orgSub, sub)
-				cb(null, newSub)
+				return newSub
 			})
 			MockDate.set(now)
 

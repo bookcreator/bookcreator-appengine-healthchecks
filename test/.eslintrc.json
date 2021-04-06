@@ -9,6 +9,13 @@
    "rules": {
       "node/global-require": "off",
       "no-loop-func": "off",
-      "mocha/no-setup-in-describe": "off"
+      "mocha/no-setup-in-describe": "off",
+      "no-unused-vars": [
+         "warn",
+         {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_"
+         }
+      ]
    }
 }

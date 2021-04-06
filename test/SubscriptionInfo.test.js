@@ -35,78 +35,87 @@ describe('SubscriptionInfo', function () {
 			MockDate.reset()
 		})
 
-		it('when not started listening', function () {
+		it('when not started listening', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			const nowDate = new Date()
-			return s._check(nowDate).then(err => {
-				assert.throws(() => { throw err }, /^Error: Not yet started listening to subscription \(dummy-sub\)$/)
-			})
+
+			const err = await s._check(nowDate)
+
+			assert.throws(() => { throw err }, /^Error: Not yet started listening to subscription \(dummy-sub\)$/)
 		})
-		it('when not received a message', function () {
+		it('when not received a message', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			const nowDate = new Date(Date.now() + 1001)
-			return s._check(nowDate).then(err => {
-				assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has never received a message$/)
-			})
+
+			const err = await s._check(nowDate)
+
+			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has never received a message$/)
 		})
-		it('when received a message past the allowed time', function () {
+		it('when received a message past the allowed time', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 10000)
 			const nowDate = new Date()
-			return s._check(nowDate).then(err => {
-				assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for .+$/)
-			})
+
+			const err = await s._check(nowDate)
+
+			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for .+$/)
 		})
 	})
 
 	describe('check has no error', function () {
-		it('when received a message now', function () {
+		it('when received a message now', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date()
 			const nowDate = new Date()
-			return s._check(nowDate)
+
+			assert.strictEqual(await s._check(nowDate), undefined)
 		})
-		it('when received a message much less than maxQuietPeriodMs ago', function () {
+		it('when received a message much less than maxQuietPeriodMs ago', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
-			return s._check(nowDate)
+
+			assert.strictEqual(await s._check(nowDate), undefined)
 		})
-		it('when listening but not yet received', function () {
+		it('when listening but not yet received', async function () {
 			const s = new SubscriptionInfo(console, sub, 10000)
 			s.startListening()
 			const nowDate = new Date()
-			return s._check(nowDate)
+
+			assert.strictEqual(await s._check(nowDate), undefined)
 		})
 	})
 
 	describe('check boundaries', function () {
-		it('when received a message at the same as maxQuietPeriodMs ago', function () {
+		it('when received a message at the same as maxQuietPeriodMs ago', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000)
 			const nowDate = new Date()
-			return s._check(nowDate)
+
+			assert.strictEqual(await s._check(nowDate), undefined)
 		})
-		it('when received a message at the same less than maxQuietPeriodMs ago', function () {
+		it('when received a message at the same less than maxQuietPeriodMs ago', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 999.999)
 			const nowDate = new Date()
-			return s._check(nowDate)
+
+			assert.strictEqual(await s._check(nowDate), undefined)
 		})
-		it('when received a message at the same more than maxQuietPeriodMs ago', function () {
+		it('when received a message at the same more than maxQuietPeriodMs ago', async function () {
 			const s = new SubscriptionInfo(console, sub, 1000)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 			const nowDate = new Date()
-			return s._check(nowDate).then(err => {
-				assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for .+$/)
-			})
+
+			const err = await s._check(nowDate)
+
+			assert.throws(() => { throw err }, /^Error: Subscription dummy-sub has not received a message for .+$/)
 		})
 	})
 
@@ -238,43 +247,74 @@ describe('SubscriptionInfo', function () {
 			assert.strictEqual(s.restartHandler, handler)
 		})
 
-		it('should not have a new sub when restart handler does nothing', function () {
-			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => cb(null, orgSub))
+		it('should not have a new sub when sync restart handler does nothing', async function () {
+			const s = new SubscriptionInfo(console, sub, 1000, orgSub => orgSub)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
-			return s._restart().then(newSub => {
-				assert.strictEqual(newSub, undefined)
-			})
+			const newSub = await s._restart()
+
+			assert.strictEqual(newSub, undefined)
 		})
 
-		it('should error when restart handler fails', function () {
+		it('should not have a new sub when async restart handler does nothing', async function () {
+			const s = new SubscriptionInfo(console, sub, 1000, async orgSub => orgSub)
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			const newSub = await s._restart()
+
+			assert.strictEqual(newSub, undefined)
+		})
+
+		it('should error when sync restart handler fails', async function () {
 			const restartErr = new Error('Restart error')
 
-			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => cb(restartErr))
+			const s = new SubscriptionInfo(console, sub, 1000, _orgSub => { throw restartErr })
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
-			return s._restart().catch(err => {
-				assert.deepStrictEqual(err, restartErr)
-			})
+			await assert.rejects(() => s._restart())
 		})
 
-		it('should return new sub to one provided by restart handler', function () {
+		it('should error when async restart handler fails', async function () {
+			const restartErr = new Error('Restart error')
+
+			const s = new SubscriptionInfo(console, sub, 1000, async _orgSub => { throw restartErr })
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			await assert.rejects(() => s._restart())
+		})
+
+		it('should return new sub to one provided by sync restart handler', async function () {
 
 			const newSub = new EventEmitter()
 			newSub.name = 'new-dummy-sub'
 
-			const s = new SubscriptionInfo(console, sub, 1000, (orgSub, cb) => {
-				return cb(null, newSub)
-			})
+			const s = new SubscriptionInfo(console, sub, 1000, _orgSub => newSub)
 			s.startListening()
 			s.lastMessageDate = new Date(Date.now() - 1000.001)
 
-			return s._restart().then(aSub => {
-				assert.notStrictEqual(aSub, sub)
-				assert.deepStrictEqual(aSub, newSub)
-			})
+			const aSub = await s._restart()
+
+			assert.notStrictEqual(aSub, sub)
+			assert.deepStrictEqual(aSub, newSub)
+		})
+
+		it('should return new sub to one provided by async restart handler', async function () {
+
+			const newSub = new EventEmitter()
+			newSub.name = 'new-dummy-sub'
+
+			const s = new SubscriptionInfo(console, sub, 1000, async _orgSub => newSub)
+			s.startListening()
+			s.lastMessageDate = new Date(Date.now() - 1000.001)
+
+			const aSub = await s._restart()
+
+			assert.notStrictEqual(aSub, sub)
+			assert.deepStrictEqual(aSub, newSub)
 		})
 	})
 })

@@ -19,7 +19,7 @@ export interface HealthChecksConfig {
    logger?: Logger;
 }
 
-export type RestartHandler = (subscription: Subscription, callback: (err?: Error, newSubscription?: Subscription) => void) => void;
+export type RestartHandler = (subscription: Subscription) => Promise<Subscription | null> | (Subscription | null);
 
 export type HealthError = Error | false;
 
