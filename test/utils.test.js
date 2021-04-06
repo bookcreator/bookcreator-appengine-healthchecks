@@ -57,9 +57,11 @@ describe('utils', function () {
 			const { PreciseDate } = require('@google-cloud/precise-date')
 
 			let org
+			// eslint-disable-next-line mocha/no-hooks-for-single-case
 			beforeEach(function () {
 				org = PreciseDate.now
 			})
+			// eslint-disable-next-line mocha/no-hooks-for-single-case
 			afterEach(function () {
 				PreciseDate.now = org
 			})
