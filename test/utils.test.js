@@ -17,7 +17,7 @@ describe('utils', function () {
 			MockDate.reset()
 		})
 
-		it('valid messages ^2.10.0 (.publishTime)', function () {
+		it('valid messages ^2.16.3 (.publishTime)', function () {
 
 			const mockMessage = (s = 0, m = 0, h = 0, d = 0) => {
 				let ms = d * 24 * 60 * 60.0
@@ -66,7 +66,7 @@ describe('utils', function () {
 				PreciseDate.now = org
 			})
 
-			it('valid messages ^2.10.0 (.publishTime) - PreciseDate', function () {
+			it('valid messages ^2.16.3 (.publishTime) - PreciseDate', function () {
 				const duration = 123125.99
 				const now = PreciseDate.now()
 				MockDate.set(now)
