@@ -1,0 +1,6 @@
+{
+   "npm.packageManager": "npm",
+   "files.exclude": {
+      "package-lock.json": true
+   }
+}
