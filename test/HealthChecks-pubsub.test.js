@@ -241,7 +241,7 @@ assert.subInfoEqual = function (actual, expected, message) {
 		this.deepStrictEqual(actual.restartHandler, expected.restartHandler)
 		this.deepStrictEqual(actual._subName, expected._subName)
 		this.deepStrictEqual(actual._sub.pubsub, expected._sub.pubsub)
-	} catch (ex) {
+	} catch (_ex) {
 		this.fail(actual, expected, message, '!==', this.subInfoEqual)
 	}
 }
