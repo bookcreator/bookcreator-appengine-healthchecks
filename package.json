@@ -20,7 +20,7 @@
     "eslint": "^7.23.0",
     "eslint-plugin-mocha": "^8.1.0",
     "eslint-plugin-node": "^11.1.0",
-    "mocha": "^8.3.2",
+    "mocha": "^11.1.0",
     "mockdate": "^3.0.5",
     "node-mocks-http": "^1.16.2"
   },
